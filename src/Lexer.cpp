@@ -1,5 +1,6 @@
 #include "Lexer.hpp"
 #include <cctype>
+#include <iostream>
 
 
 char Lexer::peek()
@@ -111,12 +112,40 @@ Token Lexer::getDelimiter()
 	return {T_UNKNOWN, value};
 }
 
+void Lexer::skipComment() {
+    if (peek() == '/') {
+        if (input[index + 1] == '/') {// 单行注释
+            while (peek() != '\n' && peek() != '\0') {
+                getChar();
+            }
+            if (peek() == '\n') {
+                getChar(); // 消耗换行符
+            }
+        } 
+		else if (input[index + 1] == '*') {
+            // 多行注释
+            getChar(); // 消耗/
+            getChar(); // 消耗*
+            while (!(peek() == '*' && input[index + 1] == '/')) {
+                if (peek() == '\0') {
+                    // 提示错误：多行注释没有正确关闭
+                    std::cout << "Error: Unclosed multi-line comment";
+                    return;
+                }
+                getChar();
+            }
+            getChar(); // 消耗*
+            getChar(); // 消耗/
+        }
+    }
+}
+
 Lexer::Lexer(const std::string& input) : input(input) {}
 
 Token Lexer::getNextToken()
 {
 	skipWhitespace();
-
+	skipComment();
 	if (index >= input.size()) {
 		return {T_EOF, ""};
 	}

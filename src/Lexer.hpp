@@ -18,6 +18,7 @@ private:
 	Token getNumber();
 	Token getOperator();
 	Token getDelimiter();
+	void skipComment();
 
 	std::map<std::string, TokenType> operatorMap = {
 	    {"+", T_PLUS},
