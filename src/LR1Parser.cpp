@@ -416,7 +416,7 @@ int main()
 
 	// // 创建LR1解析器实例
 	// LR1Parser parser(productions, S_prime, Symbol(SymbolType::Terminal, "$"));
-	LR1Parser parser("grammer.txt");
+	LR1Parser parser("grammer_simple.txt");
 
 	parser.print_firstSet();
 	parser.print_tables();
