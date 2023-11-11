@@ -1,0 +1,59 @@
+Program T_EOF
+T_IDENTIFIER T_INTEGER_LITERAL T_FLOAT_LITERAL T_STRING_LITERAL T_CHAR_LITERAL T_IF T_ELSE T_WHILE T_FOR T_RETURN T_INT T_FLOAT T_CHAR T_VOID T_STRUCT T_PLUS T_MINUS T_MULTIPLY T_DIVIDE T_ASSIGN T_EQUAL T_NOTEQUAL T_LESS T_LESSEQUAL T_GREATER T_GREATEREQUAL T_AND T_OR T_NOT T_MOD T_INCREMENT T_DECREMENT T_BITAND T_BITOR T_BITXOR T_BITNOT T_LEFTSHIFT T_RIGHTSHIFT T_SEMICOLON T_LEFT_BRACE T_RIGHT_BRACE T_LEFT_PAREN T_RIGHT_PAREN T_LEFT_SQUARE T_RIGHT_SQUARE T_COMMA T_DOT T_ARROW T_COLON T_QUESTION T_UNKNOWN T_EOF
+Program ::= DeclarationList T_EOF
+
+DeclarationList ::= Declaration DeclarationList' | Epsilon
+DeclarationList' ::= Declaration DeclarationList' | Epsilon
+
+Declaration ::= VariableDeclaration | FunctionDeclaration | StructDeclaration
+
+VariableDeclaration ::= TypeSpecifier T_IDENTIFIER T_SEMICOLON | TypeSpecifier T_IDENTIFIER T_ASSIGN Initializer T_SEMICOLON
+
+Initializer ::= T_INTEGER_LITERAL | T_FLOAT_LITERAL | T_STRING_LITERAL | T_CHAR_LITERAL
+
+TypeSpecifier ::= T_INT | T_FLOAT | T_CHAR | T_VOID | StructSpecifier
+
+StructSpecifier ::= T_STRUCT T_IDENTIFIER | T_STRUCT T_IDENTIFIER T_LEFT_BRACE DeclarationList T_RIGHT_BRACE
+
+FunctionDeclaration ::= TypeSpecifier T_IDENTIFIER T_LEFT_PAREN Parameters T_RIGHT_PAREN CompoundStmt
+
+Parameters ::= ParameterList | Epsilon
+ParameterList ::= Parameter ParameterList' | Epsilon
+ParameterList' ::= T_COMMA Parameter ParameterList' | Epsilon
+
+Parameter ::= TypeSpecifier T_IDENTIFIER
+
+CompoundStmt ::= T_LEFT_BRACE StatementList T_RIGHT_BRACE
+
+StatementList ::= Statement StatementList' | Epsilon
+StatementList' ::= Statement StatementList' | Epsilon
+
+Statement ::= ExpressionStmt | CompoundStmt | SelectionStmt | IterationStmt | ReturnStmt
+
+ExpressionStmt ::= Expression T_SEMICOLON | T_SEMICOLON
+
+SelectionStmt ::= T_IF T_LEFT_PAREN Expression T_RIGHT_PAREN Statement | T_IF T_LEFT_PAREN Expression T_RIGHT_PAREN Statement T_ELSE Statement
+
+IterationStmt ::= T_WHILE T_LEFT_PAREN Expression T_RIGHT_PAREN Statement | T_FOR T_LEFT_PAREN ExpressionStmt ExpressionStmt Expression T_RIGHT_PAREN Statement
+
+ReturnStmt ::= T_RETURN T_SEMICOLON | T_RETURN Expression T_SEMICOLON
+
+Expression ::= SimpleExpression | T_IDENTIFIER T_ASSIGN Expression
+
+SimpleExpression ::= AdditiveExpression RelOp AdditiveExpression | AdditiveExpression
+
+RelOp ::= T_LESS | T_LESSEQUAL | T_GREATER | T_GREATEREQUAL | T_EQUAL | T_NOTEQUAL
+
+AdditiveExpression ::= Term AdditiveExpression'
+AdditiveExpression' ::= AddOp Term AdditiveExpression' | Epsilon
+
+AddOp ::= T_PLUS | T_MINUS
+
+Term ::= Factor Term'
+Term' ::= MulOp Factor Term' | Epsilon
+
+MulOp ::= T_MULTIPLY | T_DIVIDE | T_MOD
+
+Factor ::= T_LEFT_PAREN Expression T_RIGHT_PAREN | T_IDENTIFIER | Constant
+
+Constant ::= T_INTEGER_LITERAL | T_FLOAT_LITERAL | T_STRING_LITERAL | T_CHAR_LITERAL
