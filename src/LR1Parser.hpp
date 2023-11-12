@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <set>
 #include <vector>
@@ -209,30 +211,7 @@ private:
 
 private:  // 求FIRST集
 	void calculateFirstSets();
-	/**
-	 * @brief 计算并返回一个给定符号的FIRST集。
-	 *
-	 * FIRST集是指从一个符号（终结符或非终结符）开始的所有字符串的首个符号的集合。
-	 * - 如果该符号是一个终结符或空串（ε），FIRST集就是该符号本身。
-	 * - 如果该符号是一个非终结符，FIRST集包括所有以该非终结符开头的产生式右侧的字符串的首个符号。
-	 *   特别地，如果某个产生式的右侧可以推导出空串，空串也会包含在FIRST集中。
-	 *
-	 * @param symbol 要计算FIRST集的符号。
-	 * @return std::set<Symbol> 给定符号的FIRST集。
-	 */
-	std::set<Symbol> first(const Symbol& symbol) const;
-	/**
-	 * @brief 计算并返回一个符号串的FIRST集。
-	 *
-	 * 对于一个给定的符号串，其FIRST集是由从左到右遍历符号串时遇到的首个非空串符号的FIRST集组成。
-	 * - 如果符号串的某个符号的FIRST集包含空串（ε），则继续考虑该符号之后的符号。
-	 * - 如果遍历到串尾且所有符号的FIRST集都包含空串，那么空串也包含在整个串的FIRST集中。
-	 * - 如果符号串为空，那么其FIRST集也只包含空串。
-	 *
-	 * @param str 要计算FIRST集的符号串。
-	 * @return std::set<Symbol> 符号串的FIRST集。
-	 */
-	std::set<Symbol> firstString(const std::vector<Symbol>& str) const;
+	std::set<Symbol> firstString(std::vector<Symbol> content) const;
 
 private:
 	std::vector<Production> productions;

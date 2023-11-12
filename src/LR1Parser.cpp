@@ -45,7 +45,6 @@ LR1Parser::LR1Parser(const std::string file_path)
 	}
 
 	calculateFirstSets();
-	std::cout << 1;
 	construct_tables();
 }
 
@@ -90,40 +89,84 @@ void LR1Parser::parseEBNFLine(const std::string& line)
 
 void LR1Parser::calculateFirstSets()
 {
-	for (const auto& [nonTerminal, _] : productionMap) {
-		firstSet[nonTerminal] = first(nonTerminal);
-	}
-}
-
-std::set<Symbol> LR1Parser::first(const Symbol& symbol) const
-{
-	if (symbol.type == SymbolType::Terminal || symbol.type == SymbolType::Epsilon) {  // 终结符或空串
-		return {symbol};
-	}
-
-	std::set<Symbol> result;
-	for (const auto& prod : productionMap.at(symbol)) {
-		std::set<Symbol> prodFirstSet = firstString(prod.rhs);
-		result.insert(prodFirstSet.begin(), prodFirstSet.end());
-	}
-
-	return result;
-}
-
-std::set<Symbol> LR1Parser::firstString(const std::vector<Symbol>& str) const
-{
-	std::set<Symbol> result;
-	for (const Symbol& symbol : str) {
-		std::set<Symbol> symbolFirstSet = first(symbol);
-		bool containsEpsilon = symbolFirstSet.erase(Symbol(SymbolType::Epsilon, "")) > 0;
-		result.insert(symbolFirstSet.begin(), symbolFirstSet.end());
-		if (!containsEpsilon) {
-			return result;
+	// Initialize FIRST sets for terminals and epsilons
+	// for (const auto& [symbol, _] : productionMap) {
+	// 	if (symbol.type == SymbolType::Terminal || symbol.type == SymbolType::Epsilon) {
+	// 		firstSet[symbol] = {symbol};
+	// 	} else {
+	// 		firstSet[symbol] = {};  // Initialize FIRST set for non-terminals
+	// 	}
+	// }
+	for (const auto& [lhs, rhs] : productions) {
+		firstSet[lhs] = {};
+		for (const auto& symbol : rhs) {
+			if (symbol.type == SymbolType::NonTerminal) {
+				firstSet[symbol] = {};
+			} else if (symbol.type == SymbolType::Terminal) {
+				firstSet[symbol] = {symbol};
+			} else if (symbol.type == SymbolType::Epsilon) {
+				firstSet[symbol] = {Symbol(SymbolType::Epsilon, "")};
+			}
 		}
 	}
-	result.insert(Symbol(SymbolType::Epsilon, ""));
-	return result;
+
+	bool changed;
+	do {
+		changed = false;
+		for (const auto& [nonTerminal, productions] : productionMap) {
+			for (const auto& prod : productions) {
+				size_t i;
+				for (i = 0; i < prod.rhs.size(); ++i) {
+					const Symbol& symbol = prod.rhs[i];
+					std::set<Symbol> symbolFirstSet = firstSet[symbol];
+					size_t oldSize = firstSet[nonTerminal].size();
+					bool has_epsilon = true;
+
+					// If the symbol does not contain epsilon, break
+					if (symbolFirstSet.find(Symbol(SymbolType::Epsilon, "")) == symbolFirstSet.end()) {
+						has_epsilon = false;
+					}
+
+					// Remove epsilon if not the last symbol
+					if (i < prod.rhs.size() - 1) {
+						symbolFirstSet.erase(Symbol(SymbolType::Epsilon, ""));
+					}
+					firstSet[nonTerminal].insert(symbolFirstSet.begin(), symbolFirstSet.end());
+
+					// Check if FIRST set has changed
+					if (firstSet[nonTerminal].size() != oldSize) {
+						changed = true;
+					}
+
+					if (!has_epsilon) break;
+				}
+
+				// If all symbols in production can lead to epsilon, add epsilon to FIRST(nonTerminal)
+				if (i == prod.rhs.size()) {
+					firstSet[nonTerminal].insert(Symbol(SymbolType::Epsilon, ""));
+				}
+			}
+		}
+	} while (changed);  // Repeat until no changes are made
 }
+
+std::set<Symbol> LR1Parser::firstString(std::vector<Symbol> content) const
+{
+	std::set<Symbol> ret;
+	for (const auto& symbol : content) {
+		if (symbol.type == SymbolType::Epsilon) continue;
+		if (symbol.type == SymbolType::Terminal) {
+			ret.insert(symbol);
+			break;
+		}
+		std::set<Symbol> symbolFirstSet = firstSet.at(symbol);
+		symbolFirstSet.erase(Symbol(SymbolType::Epsilon, ""));
+		ret.insert(symbolFirstSet.begin(), symbolFirstSet.end());
+		if (ret.size() > 0) break;
+	}
+	return ret;
+}
+
 
 LR1Item::State LR1Parser::get_lr1item_state(const LR1Item& item) const
 {
@@ -416,7 +459,7 @@ int main()
 
 	// // 创建LR1解析器实例
 	// LR1Parser parser(productions, S_prime, Symbol(SymbolType::Terminal, "$"));
-	LR1Parser parser("grammer_simple.txt");
+	LR1Parser parser("grammer.txt");
 
 	parser.print_firstSet();
 	parser.print_tables();
