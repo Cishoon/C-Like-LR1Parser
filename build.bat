@@ -1,3 +1,3 @@
 cd src/
-g++ main.cpp Lexer.cpp -o test.exe
+g++ -O2 main.cpp Lexer.cpp LR1Parser.cpp -o test.exe
 test.exe
