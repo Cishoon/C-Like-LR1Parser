@@ -438,34 +438,34 @@ void LR1Parser::print_stacks(const std::stack<int>& stateStack,
 }
 
 
-int main()
-{
-	// 定义非终结符
-	Symbol S(SymbolType::NonTerminal, "S");
-	Symbol B(SymbolType::NonTerminal, "B");
-	Symbol S_prime(SymbolType::NonTerminal, "S'");
+// int main()
+// {
+// 	// 定义非终结符
+// 	Symbol S(SymbolType::NonTerminal, "S");
+// 	Symbol B(SymbolType::NonTerminal, "B");
+// 	Symbol S_prime(SymbolType::NonTerminal, "S'");
 
-	// 定义终结符
-	Symbol a(SymbolType::Terminal, "a");
-	Symbol b(SymbolType::Terminal, "b");
+// 	// 定义终结符
+// 	Symbol a(SymbolType::Terminal, "a");
+// 	Symbol b(SymbolType::Terminal, "b");
 
-	// 定义产生式
-	Production p1(S_prime, {S});
-	Production p2(S, {B, B});
-	Production p3(B, {a, B});
-	Production p4(B, {b});
+// 	// 定义产生式
+// 	Production p1(S_prime, {S});
+// 	Production p2(S, {B, B});
+// 	Production p3(B, {a, B});
+// 	Production p4(B, {b});
 
-	// std::vector<Production> productions = {p1, p2, p3, p4};
+// 	// std::vector<Production> productions = {p1, p2, p3, p4};
 
-	// // 创建LR1解析器实例
-	// LR1Parser parser(productions, S_prime, Symbol(SymbolType::Terminal, "$"));
-	LR1Parser parser("grammer.txt");
+// 	// // 创建LR1解析器实例
+// 	// LR1Parser parser(productions, S_prime, Symbol(SymbolType::Terminal, "$"));
+// 	LR1Parser parser("grammer.txt");
 
-	parser.print_firstSet();
-	parser.print_tables();
+// 	parser.print_firstSet();
+// 	parser.print_tables();
 
-	// std::vector<Symbol> sentence = {a, b, a, b, Symbol(SymbolType::Terminal, "$")};
-	// parser.parse(sentence);
+// 	// std::vector<Symbol> sentence = {a, b, a, b, Symbol(SymbolType::Terminal, "$")};
+// 	// parser.parse(sentence);
 
-	return 0;
-}
+// 	return 0;
+// }

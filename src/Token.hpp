@@ -79,7 +79,8 @@ struct Token
 
 	std::string toString()
 	{
-		return "Type: \t" + tokenTypeToString(type) + ", \tValue: \t" + value;
+		// return "Type: \t" + tokenTypeToString(type) + ", \tValue: \t" + value;
+		return tokenTypeToString(type);
 	};
 
 private:
@@ -87,109 +88,109 @@ private:
 	{
 		switch (type) {
 			case T_IDENTIFIER:
-				return "IDENTIFIER";
+				return "T_IDENTIFIER";
 			case T_INTEGER_LITERAL:
-				return "INTEGER_LITERAL";
+				return "T_INTEGER_LITERAL";
 			case T_FLOAT_LITERAL:
-				return "FLOAT_LITERAL";
+				return "T_FLOAT_LITERAL";
 			case T_STRING_LITERAL:
-				return "STRING_LITERAL";
+				return "T_STRING_LITERAL";
 			case T_CHAR_LITERAL:
-				return "CHAR_LITERAL";
+				return "T_CHAR_LITERAL";
 			case T_IF:
-				return "IF";
+				return "T_IF";
 			case T_ELSE:
-				return "ELSE";
+				return "T_ELSE";
 			case T_WHILE:
-				return "WHILE";
+				return "T_WHILE";
 			case T_FOR:
-				return "FOR";
+				return "T_FOR";
 			case T_RETURN:
-				return "RETURN";
+				return "T_RETURN";
 			case T_INT:
-				return "INT";
+				return "T_INT";
 			case T_FLOAT:
-				return "FLOAT";
+				return "T_FLOAT";
 			case T_CHAR:
-				return "CHAR";
+				return "T_CHAR";
 			case T_VOID:
-				return "VOID";
+				return "T_VOID";
 			case T_STRUCT:
-				return "STRUCT";
+				return "T_STRUCT";
 			case T_PLUS:
-				return "PLUS";
+				return "T_PLUS";
 			case T_MINUS:
-				return "MINUS";
+				return "T_MINUS";
 			case T_MULTIPLY:
-				return "MULTIPLY";
+				return "T_MULTIPLY";
 			case T_DIVIDE:
-				return "DIVIDE";
+				return "T_DIVIDE";
 			case T_ASSIGN:
-				return "ASSIGN";
+				return "T_ASSIGN";
 			case T_EQUAL:
-				return "EQUAL";
+				return "T_EQUAL";
 			case T_NOTEQUAL:
-				return "NOTEQUAL";
+				return "T_NOTEQUAL";
 			case T_LESS:
-				return "LESS";
+				return "T_LESS";
 			case T_LESSEQUAL:
-				return "LESSEQUAL";
+				return "T_LESSEQUAL";
 			case T_GREATER:
-				return "GREATER";
+				return "T_GREATER";
 			case T_GREATEREQUAL:
-				return "GREATEREQUAL";
+				return "T_GREATEREQUAL";
 			case T_AND:
-				return "AND";
+				return "T_AND";
 			case T_OR:
-				return "OR";
+				return "T_OR";
 			case T_NOT:
-				return "NOT";
+				return "T_NOT";
 			case T_MOD:
-				return "MOD";
+				return "T_MOD";
 			case T_INCREMENT:
-				return "INCREMENT";
+				return "T_INCREMENT";
 			case T_DECREMENT:
-				return "DECREMENT";
+				return "T_DECREMENT";
 			case T_BITAND:
-				return "BITAND";
+				return "T_BITAND";
 			case T_BITOR:
-				return "BITOR";
+				return "T_BITOR";
 			case T_BITXOR:
-				return "BITXOR";
+				return "T_BITXOR";
 			case T_BITNOT:
-				return "BITNOT";
+				return "T_BITNOT";
 			case T_LEFTSHIFT:
-				return "LEFTSHIFT";
+				return "T_LEFTSHIFT";
 			case T_RIGHTSHIFT:
-				return "RIGHTSHIFT";
+				return "T_RIGHTSHIFT";
 			case T_SEMICOLON:
-				return "SEMICOLON";
+				return "T_SEMICOLON";
 			case T_LEFT_BRACE:
-				return "LEFT_BRACE";
+				return "T_LEFT_BRACE";
 			case T_RIGHT_BRACE:
-				return "RIGHT_BRACE";
+				return "T_RIGHT_BRACE";
 			case T_LEFT_PAREN:
-				return "LEFT_PAREN";
+				return "T_LEFT_PAREN";
 			case T_RIGHT_PAREN:
-				return "RIGHT_PAREN";
+				return "T_RIGHT_PAREN";
 			case T_LEFT_SQUARE:
-				return "LEFT_SQUARE";
+				return "T_LEFT_SQUARE";
 			case T_RIGHT_SQUARE:
-				return "RIGHT_SQUARE";
+				return "T_RIGHT_SQUARE";
 			case T_COMMA:
-				return "COMMA";
+				return "T_COMMA";
 			case T_DOT:
-				return "DOT";
+				return "T_DOT";
 			case T_ARROW:
-				return "ARROW";
+				return "T_ARROW";
 			case T_COLON:
-				return "COLON";
+				return "T_COLON";
 			case T_QUESTION:
-				return "QUESTION";
+				return "T_QUESTION";
 			case T_UNKNOWN:
-				return "UNKNOWN";
+				return "T_UNKNOWN";
 			case T_EOF:
-				return "EOF";
+				return "T_EOF";
 			default:
 				return "INVALID_TOKEN_TYPE";
 		}
