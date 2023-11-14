@@ -89,14 +89,6 @@ void LR1Parser::parseEBNFLine(const std::string& line)
 
 void LR1Parser::calculateFirstSets()
 {
-	// Initialize FIRST sets for terminals and epsilons
-	// for (const auto& [symbol, _] : productionMap) {
-	// 	if (symbol.type == SymbolType::Terminal || symbol.type == SymbolType::Epsilon) {
-	// 		firstSet[symbol] = {symbol};
-	// 	} else {
-	// 		firstSet[symbol] = {};  // Initialize FIRST set for non-terminals
-	// 	}
-	// }
 	for (const auto& [lhs, rhs] : productions) {
 		firstSet[lhs] = {};
 		for (const auto& symbol : rhs) {
@@ -118,7 +110,7 @@ void LR1Parser::calculateFirstSets()
 				size_t i;
 				for (i = 0; i < prod.rhs.size(); ++i) {
 					const Symbol& symbol = prod.rhs[i];
-					std::set<Symbol> symbolFirstSet = firstSet[symbol];
+					std::unordered_set<Symbol, SymbolHash, SymbolEqual> symbolFirstSet = firstSet[symbol];
 					size_t oldSize = firstSet[nonTerminal].size();
 					bool has_epsilon = true;
 
@@ -150,16 +142,16 @@ void LR1Parser::calculateFirstSets()
 	} while (changed);  // Repeat until no changes are made
 }
 
-std::set<Symbol> LR1Parser::firstString(std::vector<Symbol> content) const
+std::unordered_set<Symbol, SymbolHash, SymbolEqual> LR1Parser::firstString(std::vector<Symbol> content) const
 {
-	std::set<Symbol> ret;
+	std::unordered_set<Symbol, SymbolHash, SymbolEqual> ret;
 	for (const auto& symbol : content) {
 		if (symbol.type == SymbolType::Epsilon) continue;
 		if (symbol.type == SymbolType::Terminal) {
 			ret.insert(symbol);
 			break;
 		}
-		std::set<Symbol> symbolFirstSet = firstSet.at(symbol);
+		std::unordered_set<Symbol, SymbolHash, SymbolEqual> symbolFirstSet = firstSet.at(symbol);
 		symbolFirstSet.erase(Symbol(SymbolType::Epsilon, ""));
 		ret.insert(symbolFirstSet.begin(), symbolFirstSet.end());
 		if (ret.size() > 0) break;
@@ -198,32 +190,40 @@ LR1Item::State LR1Parser::get_lr1item_state(const LR1Item& item) const
 	throw std::runtime_error("Undefined state for LR1 item.");
 }
 
-std::set<LR1Item> LR1Parser::closure(std::set<LR1Item> old_set) const
+void LR1Parser::closure(std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual>& old_set) const
 {
-	while (true) {
-		std::set<LR1Item> new_set(old_set);
-		for (auto it = old_set.begin(); it != old_set.end(); it++) {
-			auto& item = *it;
+	bool changed = true;
+	std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual> vis_item;
+	while (changed) {
+		changed = false;
+		std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual> items_to_add;
 
+		for (const auto& item : old_set) {
 			// 只有GOTO状态(.后面是非终结符)才需要处理
 			if (get_lr1item_state(item) != LR1Item::State::GOTO) continue;
+			if (vis_item.find(item) != vis_item.end()) continue;
+			vis_item.insert(item);
 
 			Symbol next_symbol = item.next_symbol();
 			Symbol nnext_symbol = item.nnext_symbol();
 			// 找到文法中所有以next_symbol为lhs的产生式
 			std::vector<Production> next_prods = get_productions_start_by_symbol(next_symbol);
-			for (auto& prod : next_prods) {
-				std::set<Symbol> lookheads = firstString({nnext_symbol, item.lookahead});
-				for (auto p_lh = lookheads.begin(); p_lh != lookheads.end(); p_lh++) {
-					new_set.insert(LR1Item(prod, 0, *p_lh));
+			for (const auto& prod : next_prods) {
+				std::unordered_set<Symbol, SymbolHash, SymbolEqual> lookaheads = firstString({nnext_symbol, item.lookahead});
+				for (const auto& p_lh : lookaheads) {
+					LR1Item new_item(prod, 0, p_lh);
+					if (old_set.find(new_item) == old_set.end()) {
+						items_to_add.insert(new_item);
+						changed = true;
+					}
 				}
 			}
 		}
-		if (old_set == new_set) break;
-		old_set = new_set;
+
+		old_set.insert(items_to_add.begin(), items_to_add.end());
 	}
-	return old_set;
 }
+
 
 std::vector<Production> LR1Parser::get_productions_start_by_symbol(const Symbol& symbol) const
 {
@@ -269,8 +269,8 @@ void LR1Parser::print_tables() const
 void LR1Parser::construct_tables()
 {
 	Production begin_production = get_productions_start_by_symbol(start_symbol).at(0);
-	lr1ItemSets.push_back(std::set<LR1Item>({LR1Item(begin_production, 0, end_symbol)}));
-	lr1ItemSets[0] = closure(lr1ItemSets[0]);
+	lr1ItemSets.push_back(std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual>({LR1Item(begin_production, 0, end_symbol)}));
+	closure(lr1ItemSets[0]);
 
 	for (size_t index = 0; index < lr1ItemSets.size(); ++index) {
 		std::vector<LR1Item> shift_items, reduce_items, accept_items, goto_items;
@@ -299,13 +299,13 @@ void LR1Parser::construct_tables()
 		}
 
 		for (auto& vt : VT_shift) {
-			std::set<LR1Item> new_set;
+			std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual> new_set;
 			for (auto& item : lr1ItemSets[index]) {
 				if (get_lr1item_state(item) == LR1Item::State::SHIFT && item.next_symbol() == vt) {
 					new_set.insert(LR1Item(item.production, item.dot_position + 1, item.lookahead));
 				}
 			}
-			new_set = closure(new_set);
+			closure(new_set);
 			size_t id = find(lr1ItemSets.begin(), lr1ItemSets.end(), new_set) - lr1ItemSets.begin();
 			if (id == lr1ItemSets.size()) {
 				lr1ItemSets.push_back(new_set);
@@ -314,13 +314,13 @@ void LR1Parser::construct_tables()
 		}
 
 		for (auto& vn : VN_goto) {
-			std::set<LR1Item> new_set;
+			std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual> new_set;
 			for (auto& item : lr1ItemSets[index]) {
 				if (get_lr1item_state(item) == LR1Item::State::GOTO && item.next_symbol() == vn) {
 					new_set.insert(LR1Item(item.production, item.dot_position + 1, item.lookahead));
 				}
 			}
-			new_set = closure(new_set);
+			closure(new_set);
 			size_t id = find(lr1ItemSets.begin(), lr1ItemSets.end(), new_set) - lr1ItemSets.begin();
 			if (id == lr1ItemSets.size()) {
 				lr1ItemSets.push_back(new_set);

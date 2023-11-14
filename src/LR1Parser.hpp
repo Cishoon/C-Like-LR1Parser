@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <unordered_set>
+#include <unordered_map>
 
 
 enum class SymbolType {
@@ -168,6 +170,70 @@ struct Action
 };
 
 
+struct SymbolHash
+{
+	size_t operator()(const Symbol& sym) const
+	{
+		return std::hash<std::string>()(sym.value) ^ std::hash<int>()(static_cast<int>(sym.type));
+	}
+};
+
+struct SymbolEqual
+{
+	bool operator()(const Symbol& lhs, const Symbol& rhs) const
+	{
+		return lhs.type == rhs.type && lhs.value == rhs.value;
+	}
+};
+
+struct ProductionHash
+{
+	size_t operator()(const Production& prod) const
+	{
+		size_t hash = SymbolHash()(prod.lhs);
+		for (const auto& sym : prod.rhs) {
+			hash ^= SymbolHash()(sym) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+		}
+		return hash;
+	}
+};
+
+struct ProductionEqual
+{
+	bool operator()(const Production& lhs, const Production& rhs) const
+	{
+		if (!SymbolEqual()(lhs.lhs, rhs.lhs) || lhs.rhs.size() != rhs.rhs.size()) {
+			return false;
+		}
+		for (size_t i = 0; i < lhs.rhs.size(); ++i) {
+			if (!SymbolEqual()(lhs.rhs[i], rhs.rhs[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+};
+
+// 自定义哈希函数
+struct LR1ItemHash
+{
+	size_t operator()(const LR1Item& item) const
+	{
+		return ProductionHash()(item.production) ^ std::hash<size_t>()(item.dot_position) ^ SymbolHash()(item.lookahead);
+	}
+};
+
+// 自定义相等比较函数
+struct LR1ItemEqual
+{
+	bool operator()(const LR1Item& lhs, const LR1Item& rhs) const
+	{
+		return ProductionEqual()(lhs.production, rhs.production) && lhs.dot_position == rhs.dot_position && SymbolEqual()(lhs.lookahead, rhs.lookahead);
+	}
+};
+
+
+
 class LR1Parser {
 public:
 	LR1Parser(const std::vector<Production>& productions, Symbol start, Symbol end);
@@ -188,9 +254,9 @@ private:
 	 * @brief 求项目集族的闭包
 	 *
 	 * @param lr1ItemSet 待求闭包的项目集族
-	 * @return std::set<LR1Item> 该项目集族的闭包
+	 * @return std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual> 该项目集族的闭包
 	 */
-	std::set<LR1Item> closure(std::set<LR1Item> lr1ItemSet) const;
+	void closure(std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual>& lr1ItemSet) const;
 
 private:
 	/**
@@ -211,20 +277,20 @@ private:
 
 private:  // 求FIRST集
 	void calculateFirstSets();
-	std::set<Symbol> firstString(std::vector<Symbol> content) const;
+	std::unordered_set<Symbol, SymbolHash, SymbolEqual> firstString(std::vector<Symbol> content) const;
 
 private:
 	std::vector<Production> productions;
-	std::map<Symbol, std::vector<Production>> productionMap;
-	std::map<Symbol, std::set<Symbol>> firstSet, followSet;
+	std::unordered_map<Symbol, std::vector<Production>, SymbolHash, SymbolEqual> productionMap;
+	std::unordered_map<Symbol, std::unordered_set<Symbol, SymbolHash, SymbolEqual>, SymbolHash, SymbolEqual> firstSet, followSet;
 
 	Symbol start_symbol;  // 起始符
 	Symbol end_symbol;    // 终止符
 
 
-	std::map<std::pair<int, Symbol>, Action> actionTable;  // ACTION表
-	std::map<std::pair<int, Symbol>, int> gotoTable;       // GOTO表
-	std::vector<std::set<LR1Item>> lr1ItemSets;            // 项目集族
+	std::map<std::pair<int, Symbol>, Action> actionTable;                             // ACTION表
+	std::map<std::pair<int, Symbol>, int> gotoTable;                                  // GOTO表
+	std::vector<std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual>> lr1ItemSets;  // 项目集族
 
-	std::set<std::string> terminals;  // 终结符集
+	std::unordered_set<std::string> terminals;  // 终结符集
 };
