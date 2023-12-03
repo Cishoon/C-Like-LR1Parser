@@ -244,7 +244,7 @@ public:
 	bool parse(const std::vector<Symbol>& sentence) const;
 
 private:
-	void parseEBNFLine(const std::string& line);
+	void parse_EBNF_line(const std::string& line);
 	void print_stacks(const std::stack<int>& stateStack,
 	                  const std::stack<Symbol>& symbolStack,
 	                  const std::vector<Symbol>& inputStack) const;
@@ -276,8 +276,8 @@ private:
 	std::vector<Production> get_productions_start_by_symbol(const Symbol& symbol) const;
 
 private:  // 求FIRST集
-	void calculateFirstSets();
-	std::unordered_set<Symbol, SymbolHash, SymbolEqual> firstString(std::vector<Symbol> content) const;
+	void calculate_firstSets();
+	std::unordered_set<Symbol, SymbolHash, SymbolEqual> get_first_string(std::vector<Symbol> content) const;
 
 private:
 	std::vector<Production> productions;

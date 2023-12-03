@@ -7,7 +7,7 @@ LR1Parser::LR1Parser(const std::vector<Production>& productions, Symbol start, S
 	for (const auto& production : productions) {
 		productionMap[production.lhs].push_back(production);
 	}
-	calculateFirstSets();
+	calculate_firstSets();
 	construct_tables();
 }
 
@@ -41,14 +41,14 @@ LR1Parser::LR1Parser(const std::string file_path)
 
 	std::string line;
 	while (std::getline(file, line)) {
-		parseEBNFLine(line);
+		parse_EBNF_line(line);
 	}
 
-	calculateFirstSets();
+	calculate_firstSets();
 	construct_tables();
 }
 
-void LR1Parser::parseEBNFLine(const std::string& line)
+void LR1Parser::parse_EBNF_line(const std::string& line)
 {
 	std::istringstream iss(line);
 	std::string lhs, rhsPart, token;
@@ -87,7 +87,7 @@ void LR1Parser::parseEBNFLine(const std::string& line)
 }
 
 
-void LR1Parser::calculateFirstSets()
+void LR1Parser::calculate_firstSets()
 {
 	for (const auto& [lhs, rhs] : productions) {
 		firstSet[lhs] = {};
@@ -142,7 +142,7 @@ void LR1Parser::calculateFirstSets()
 	} while (changed);  // Repeat until no changes are made
 }
 
-std::unordered_set<Symbol, SymbolHash, SymbolEqual> LR1Parser::firstString(std::vector<Symbol> content) const
+std::unordered_set<Symbol, SymbolHash, SymbolEqual> LR1Parser::get_first_string(std::vector<Symbol> content) const
 {
 	std::unordered_set<Symbol, SymbolHash, SymbolEqual> ret;
 	for (const auto& symbol : content) {
@@ -209,7 +209,7 @@ void LR1Parser::closure(std::unordered_set<LR1Item, LR1ItemHash, LR1ItemEqual>& 
 			// 找到文法中所有以next_symbol为lhs的产生式
 			std::vector<Production> next_prods = get_productions_start_by_symbol(next_symbol);
 			for (const auto& prod : next_prods) {
-				std::unordered_set<Symbol, SymbolHash, SymbolEqual> lookaheads = firstString({nnext_symbol, item.lookahead});
+				std::unordered_set<Symbol, SymbolHash, SymbolEqual> lookaheads = get_first_string({nnext_symbol, item.lookahead});
 				for (const auto& p_lh : lookaheads) {
 					LR1Item new_item(prod, 0, p_lh);
 					if (old_set.find(new_item) == old_set.end()) {
